@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-misp
+  namespace: wazuh
+data:
+  custom-misp.py: |
+    import json
+    import requests
+    import sys
+
+    # Dirección de la API de MISP y clave de API MISP
+    MISP_API_URL = "http://34.236.118.1/attributes/restSearch"
+    MISP_API_KEY = "oOS5TkAVkJP2Y759KYQEvMC1kmPnP3IIsA0l6Mdw"
+
+    # Enviar el fileHash a MISP
+    def send_filehash_to_misp(filehash):
+        """Envía el fileHash a la API de MISP y devuelve la respuesta."""
+        headers = {
+            "Authorization": MISP_API_KEY,
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "returnFormat": "json",
+            "type": "md5",  # Ajusta esto si estás usando un tipo de hash diferente, como sha256
+            "value": filehash
+        }
+        try:
+            response = requests.post(MISP_API_URL, headers=headers, json=data)
+            response.raise_for_status()
+            return response.json()  # Retorna la respuesta de MISP
+        except requests.exceptions.RequestException as e:
+            print(f"Error enviando el hash a MISP: {e}", file=sys.stderr)
+            return None
+
+    # Integrar la respuesta de MISP en la alerta y enviarla
+    def process_alert(alert):
+        """Procesa la alerta, enriqueciendo con datos de MISP si es necesario."""
+        # Filtrar alertas por nivel (>=3)
+        if alert.get("rule", {}).get("level", 0) < 3:
+            print("Nivel de alerta menor a 3. No se procesará.")
+            return None
+
+        # Obtener el hash del archivo (field: `fileHash`)
+        filehash = alert.get("data", {}).get("fileHash")
+        if not filehash:
+            print("No se encontró fileHash en la alerta. No se procesará.", file=sys.stderr)
+            return None
+
+        # Enviar el fileHash a MISP
+        print(f"Enviando fileHash {filehash} a MISP...")
+        misp_response = send_filehash_to_misp(filehash)
+
+        if misp_response:
+            # Si la respuesta de MISP contiene IoCs (Indicadores de Compromiso), agregarlos a la alerta
+            if "response" in misp_response and "Attribute" in misp_response["response"]:
+                attribute = misp_response["response"]["Attribute"][0]  # Tomamos el primer IoC encontrado
+                alert["misp"] = {
+                    "event_id": attribute.get("event_id", ""),
+                    "category": attribute.get("category", ""),
+                    "value": attribute.get("value", ""),
+                    "type": attribute.get("type", ""),
+                    "source": alert.get("rule", {}).get("description", ""),
+                }
+                alert["integration"] = "misp"  # Indicamos que la alerta fue enriquecida con MISP
+            else:
+                alert["misp"] = {"error": "No se encontraron atributos relevantes en MISP"}
+                alert["integration"] = "misp_error"  # Indicamos que hubo un error al enriquecer con MISP
+
+            # Aquí puedes enviar la alerta enriquecida al sistema Wazuh (Dashboard)
+            send_event_to_wazuh(alert)
+
+        else:
+            print("No se pudo obtener respuesta de MISP", file=sys.stderr)
+
+    # Función para enviar la alerta al sistema de Wazuh (para que aparezca en el Dashboard)
+    def send_event_to_wazuh(event):
+        """Envía la alerta enriquecida al sistema Wazuh para que se vea en el Dashboard."""
+        # Aquí puedes implementar la lógica para enviar la alerta al sistema Wazuh.
+        # Esto podría ser a través de la API de Wazuh, enviando los datos por syslog, o de cualquier otra forma que tu sistema soporte.
+        # Para este ejemplo, solo imprimimos el evento enriquecido para ver cómo quedaría en el Dashboard:
+        print("Evento enriquecido enviado a Wazuh:")
+        print(json.dumps(event, indent=4))
+
+    # Función principal
+    def main():
+        # Leer alerta desde stdin (proporcionada por Wazuh)
+        alert = sys.stdin.read()
+
+        # Parsear alerta como JSON
+        try:
+            alert_json = json.loads(alert)
+        except json.JSONDecodeError:
+            print("No se pudo decodificar la alerta como JSON.", file=sys.stderr)
+            sys.exit(1)
+
+        # Procesar la alerta y enriquecerla
+        process_alert(alert_json)
+
+    if __name__ == "__main__":
+        main()
