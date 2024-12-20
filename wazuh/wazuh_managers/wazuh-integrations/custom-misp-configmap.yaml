@@ -8,10 +8,18 @@ data:
     import json
     import requests
     import sys
+    from socket import socket, AF_UNIX, SOCK_DGRAM
+    import os
+    import http.client
+    
+    http.client.HTTPConnection.debuglevel = 1
 
     # Dirección de la API de MISP y clave de API MISP
-    MISP_API_URL = "http://34.236.118.1/attributes/restSearch"
-    MISP_API_KEY = "oOS5TkAVkJP2Y759KYQEvMC1kmPnP3IIsA0l6Mdw"
+    MISP_API_URL = "https://34.236.118.1/attributes/restSearch"
+    MISP_API_KEY = "hM6zjQRJKC74Lxq6cmWUStuPKdzwMES2h4NfiPFn"
+
+    # Dirección del socket de Wazuh para enviar eventos
+    SOCKET_ADDR = "/var/ossec/queue/sockets/queue"
 
     # Enviar el fileHash a MISP
     def send_filehash_to_misp(filehash):
@@ -23,16 +31,43 @@ data:
         }
         data = {
             "returnFormat": "json",
-            "type": "md5",  # Ajusta esto si estás usando un tipo de hash diferente, como sha256
+            #"type": "md5",  # Ajusta esto si estás usando un tipo de hash diferente, como sha256
             "value": filehash
         }
+
+        # Imprimir JSON enviado
+        print("JSON enviado a MISP:")
+        print(json.dumps(data, indent=2))
+
+        # Imprimir encabezados de la solicitud
+        print("Encabezados enviados a MISP:")
+        print(json.dumps(headers, indent=2))
         try:
-            response = requests.post(MISP_API_URL, headers=headers, json=data)
+            response = requests.post(MISP_API_URL, headers=headers, json=data, verify=False, allow_redirects=False)
             response.raise_for_status()
             return response.json()  # Retorna la respuesta de MISP
         except requests.exceptions.RequestException as e:
             print(f"Error enviando el hash a MISP: {e}", file=sys.stderr)
+            print(f"Detalles del error: {response.text}")
             return None
+
+    # Función para enviar la alerta al sistema de Wazuh (para que aparezca en el Dashboard)
+    def send_event_to_wazuh(alert):
+        """Envía la alerta enriquecida al sistema Wazuh para que se vea en el Dashboard."""
+        try:
+            if alert.get("agent", {}).get("id") == "000" or not alert.get("agent"):
+                string = f'1:misp:{json.dumps(alert)}'
+            else:
+                agent = alert.get("agent", {})
+                string = f'1:[{agent["id"]}] ({agent["name"]}) {agent.get("ip", "any")}->misp:{json.dumps(alert)}'
+            
+            sock = socket(AF_UNIX, SOCK_DGRAM)
+            sock.connect(SOCKET_ADDR)
+            sock.send(string.encode())
+            sock.close()
+            print("Alerta enriquecida enviada a Wazuh correctamente.")
+        except Exception as e:
+            print(f"Error al enviar la alerta a Wazuh: {e}", file=sys.stderr)
 
     # Integrar la respuesta de MISP en la alerta y enviarla
     def process_alert(alert):
@@ -40,6 +75,12 @@ data:
         # Filtrar alertas por nivel (>=3)
         if alert.get("rule", {}).get("level", 0) < 3:
             print("Nivel de alerta menor a 3. No se procesará.")
+            return None
+
+        # Filtrar alertas por el grupo de reglas (rule.group == "sentinelone")
+        rule_groups = alert.get("rule", {}).get("groups", [])
+        if "sentinelone" not in rule_groups:
+            print("La alerta no pertenece al grupo 'sentinelone'. No se procesará.")
             return None
 
         # Obtener el hash del archivo (field: `fileHash`)
@@ -55,33 +96,26 @@ data:
         if misp_response:
             # Si la respuesta de MISP contiene IoCs (Indicadores de Compromiso), agregarlos a la alerta
             if "response" in misp_response and "Attribute" in misp_response["response"]:
-                attribute = misp_response["response"]["Attribute"][0]  # Tomamos el primer IoC encontrado
-                alert["misp"] = {
-                    "event_id": attribute.get("event_id", ""),
-                    "category": attribute.get("category", ""),
-                    "value": attribute.get("value", ""),
-                    "type": attribute.get("type", ""),
-                    "source": alert.get("rule", {}).get("description", ""),
-                }
-                alert["integration"] = "misp"  # Indicamos que la alerta fue enriquecida con MISP
+                if misp_response["response"]["Attribute"]:  # Comprobar si la lista no está vacía
+                    attribute = misp_response["response"]["Attribute"][0]  # Tomamos el primer IoC encontrado
+                    alert["misp"] = {
+                        "event_id": attribute.get("event_id", ""),
+                        "category": attribute.get("category", ""),
+                        "value": attribute.get("value", ""),
+                        "type": attribute.get("type", ""),
+                        "source": alert.get("rule", {}).get("description", ""),
+                    }
+                    alert["integration"] = "misp"  # Indicamos que la alerta fue enriquecida con MISP
+                    # Aquí se envía la alerta enriquecida al sistema Wazuh (Dashboard)
+                    send_event_to_wazuh(alert)                    
+                else:
+                    alert["misp"] = {"error": "No se encontraron atributos relevantes en MISP"}
+                    alert["integration"] = "misp_error"  # Indicamos que hubo un error al enriquecer con MISP
             else:
-                alert["misp"] = {"error": "No se encontraron atributos relevantes en MISP"}
+                alert["misp"] = {"error": "Respuesta de MISP no contiene atributos"}
                 alert["integration"] = "misp_error"  # Indicamos que hubo un error al enriquecer con MISP
-
-            # Aquí puedes enviar la alerta enriquecida al sistema Wazuh (Dashboard)
-            send_event_to_wazuh(alert)
-
         else:
             print("No se pudo obtener respuesta de MISP", file=sys.stderr)
-
-    # Función para enviar la alerta al sistema de Wazuh (para que aparezca en el Dashboard)
-    def send_event_to_wazuh(event):
-        """Envía la alerta enriquecida al sistema Wazuh para que se vea en el Dashboard."""
-        # Aquí puedes implementar la lógica para enviar la alerta al sistema Wazuh.
-        # Esto podría ser a través de la API de Wazuh, enviando los datos por syslog, o de cualquier otra forma que tu sistema soporte.
-        # Para este ejemplo, solo imprimimos el evento enriquecido para ver cómo quedaría en el Dashboard:
-        print("Evento enriquecido enviado a Wazuh:")
-        print(json.dumps(event, indent=4))
 
     # Función principal
     def main():
@@ -100,3 +134,4 @@ data:
 
     if __name__ == "__main__":
         main()
+    

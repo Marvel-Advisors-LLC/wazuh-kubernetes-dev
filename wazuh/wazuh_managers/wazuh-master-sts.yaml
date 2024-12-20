@@ -35,13 +35,20 @@ spec:
         - name: custom-scripts-bash
           configMap:
             name: custom-w2thive-bash
-            defaultMode: 0750                                     
+            defaultMode: 0750      
+        - name: custom-misp-script
+          configMap:
+            name: custom-misp
+            defaultMode: 0750                                              
         - name: sentinelone-rules 
           configMap:
             name: sentinelone-rules-configmap 
         - name: sentinelone-decoders
           configMap:
-            name: sentinelone-decoders-configmap   ########ENDS MY CONFIG######               
+            name: sentinelone-decoders-configmap  
+        - name: misp-rules
+          configMap:
+            name: misp-rules-configmap             ########ENDS MY CONFIG######               
         - name: config
           configMap:
             name: wazuh-conf
@@ -86,9 +93,6 @@ spec:
             - name: config   #########START MY CONFIG##############
               mountPath: /etc/filebeat/filebeat.yml 
               subPath: filebeat.yml  
-            - name: temp-storage
-              mountPath: /temp-storage # Aquí se monta el volumen temporal
-              readOnly: false
             - name: custom-scripts-bash
               mountPath: /wazuh-config-mount/integrations/custom-w2thive
               subPath: custom-w2thive
@@ -96,7 +100,11 @@ spec:
             - name: custom-scripts
               mountPath: /wazuh-config-mount/integrations/custom-w2thive.py
               subPath: custom-w2thive.py
-              readOnly: true                                         
+              readOnly: true  
+            - name: custom-misp-script
+              mountPath: /wazuh-config-mount/integrations/custom-misp.py
+              subPath: custom-misp.py
+              readOnly: true                                                       
             - name: sentinelone-rules
               mountPath: /var/ossec/etc/rules/sentinelone_rules.xml
               subPath: sentinelone_rules.xml
@@ -104,7 +112,11 @@ spec:
             - name: sentinelone-decoders
               mountPath: /var/ossec/etc/decoders/sentinelone_decoders.xml
               subPath: sentinelone_decoders.xml
-              readOnly: true  #######ENDS MY CONFIG###############                       
+              readOnly: true 
+            - name: misp-rules
+              mountPath: /var/ossec/etc/rules/misp-rules.xml
+              subPath: misp_rules.xml 
+              readOnly: true              #######ENDS MY CONFIG###############                       
             - name: config
               mountPath: /wazuh-config-mount/etc/ossec.conf
               subPath: master.conf
