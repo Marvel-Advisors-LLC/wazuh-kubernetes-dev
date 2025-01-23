@@ -14,7 +14,7 @@ setup.ilm.enabled: false
 output.elasticsearch:
   hosts: ['https://indexer:9200']
   username: 'admin'
-  password: 'SecretPassword'
+  password: 'soeJKJg4%65.2+-^^'
   ssl.verification_mode: 'full'
   ssl.certificate_authorities: ['/etc/ssl/root-ca.pem']
   ssl.certificate: '/etc/ssl/filebeat.pem'
