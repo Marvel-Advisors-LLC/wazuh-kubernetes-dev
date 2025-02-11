@@ -1,22 +1,29 @@
+#!/var/ossec/framework/python/bin/python3
 import json
 import requests
 import sys
 from socket import socket, AF_UNIX, SOCK_DGRAM
+from datetime import datetime
 import os
 import http.client
+import logging
+
+# Configuración de logging
+logging.basicConfig(level=logging.DEBUG)
+logging.debug("Script custom-misp.py iniciado")
 
 http.client.HTTPConnection.debuglevel = 1
 
 # Dirección de la API de MISP y clave de API MISP
 MISP_API_URL = "https://34.236.118.1/attributes/restSearch"
-MISP_API_KEY = "hM6zjQRJKC74Lxq6cmWUStuPKdzwMES2h4NfiPFn"
+MISP_API_KEY = "XmAnlmAzgNPFVQ1SQ1RXsZhWkd6KG4noz5mvC9qf"
 
 # Dirección del socket de Wazuh para enviar eventos
 SOCKET_ADDR = "/var/ossec/queue/sockets/queue"
 
-# Enviar el fileHash a MISP
-def send_filehash_to_misp(filehash):
-    """Envía el fileHash a la API de MISP y devuelve la respuesta."""
+# Enviar el file_hash a MISP
+def send_file_hash_to_misp(file_hash):
+    """Envía el file_hash a la API de MISP y devuelve la respuesta."""
     headers = {
         "Authorization": MISP_API_KEY,
         "Accept": "application/json",
@@ -25,7 +32,7 @@ def send_filehash_to_misp(filehash):
     data = {
         "returnFormat": "json",
         #"type": "md5",  # Ajusta esto si estás usando un tipo de hash diferente, como sha256
-        "value": filehash
+        "value": file_hash
     }
 
     # Imprimir JSON enviado
@@ -35,18 +42,18 @@ def send_filehash_to_misp(filehash):
     # Imprimir encabezados de la solicitud
     print("Encabezados enviados a MISP:")
     print(json.dumps(headers, indent=2))
-
     try:
         response = requests.post(MISP_API_URL, headers=headers, json=data, verify=False, allow_redirects=False)
         response.raise_for_status()
-        import http.client
-        http.client.HTTPConnection.debuglevel = 1
+        with open("/var/ossec/logs/integration_debug.log", "a") as debug_log:
+            debug_log.write(f"\n[DEBUG] Enviando alerta enriquecida a Wazuh...\n")
         return response.json()  # Retorna la respuesta de MISP
     except requests.exceptions.RequestException as e:
         print(f"Error enviando el hash a MISP: {e}", file=sys.stderr)
         print(f"Detalles del error: {response.text}")
-
         return None
+
+
 
 # Función para enviar la alerta al sistema de Wazuh (para que aparezca en el Dashboard)
 def send_event_to_wazuh(alert):
@@ -80,15 +87,45 @@ def process_alert(alert):
         print("La alerta no pertenece al grupo 'sentinelone'. No se procesará.")
         return None
 
-    # Obtener el hash del archivo (field: `fileHash`)
-    filehash = alert.get("data", {}).get("fileHash")
-    if not filehash:
-        print("No se encontró fileHash en la alerta. No se procesará.", file=sys.stderr)
+    # Obtener el hash del archivo (field: `file_hash`)
+    file_hash =  alert.get("data", {}).get("file_hash")
+    if not file_hash:
+        print("No se encontró file_hash en la alerta. No se procesará.", file=sys.stderr)
         return None
 
-    # Enviar el fileHash a MISP
-    print(f"Enviando fileHash {filehash} a MISP...")
-    misp_response = send_filehash_to_misp(filehash)
+    # Flatten data.data:
+    data_data = alert.get("data", {}).get("data", {})
+    if data_data:
+        # Move fields to the top level of 'data'
+        alert["data"]["log_message1"] = data_data.get("log_message1", "")
+        alert["data"]["log_message2"] = data_data.get("log_message2", "")
+        alert["data"]["endpoint"] = data_data.get("endpoint", "")
+        alert["data"]["operating_system"] = data_data.get("operating_system", "")
+        alert["data"]["activity_id"] = data_data.get("activity_id", "")
+        alert["data"]["site_id"] = data_data.get("site_id", "")
+        alert["data"]["site_name"] = data_data.get("site_name", "")
+        alert["data"]["account_id"] = data_data.get("account_id", "")
+        alert["data"]["account_name"] = data_data.get("account_name", "")
+
+        # Remove the original nested 'data' object
+        del alert["data"]["data"] 
+
+    print(f"[DEBUG] Enviando file_hash {file_hash} a MISP...")
+    with open("/var/ossec/logs/integration_debug.log", "a") as debug_log:
+        debug_log.write(f"\n[DEBUG] Enviando file_hash {file_hash} a MISP...\n")
+
+
+    # Log the modified alert JSON
+    try:
+        with open("/var/ossec/logs/modified_alert.json", "w") as outfile: # Change mode to "w" to create the file if it not exists and overwrite it if exists.
+            json.dump(alert, outfile, indent=2) #Write the JSON with indent =2 for more readable output
+        print("[DEBUG] Modified alert written to /var/ossec/logs/modified_alert.json")
+    except Exception as e:
+        print(f"Error writing modified alert to file: {e}", file=sys.stderr)
+
+    # Enviar el file_hash a MISP
+    print(f"Enviando file_hash {file_hash} a MISP...")
+    misp_response = send_file_hash_to_misp(file_hash)
 
     if misp_response:
         # Si la respuesta de MISP contiene IoCs (Indicadores de Compromiso), agregarlos a la alerta
@@ -103,8 +140,12 @@ def process_alert(alert):
                     "source": alert.get("rule", {}).get("description", ""),
                 }
                 alert["integration"] = "misp"  # Indicamos que la alerta fue enriquecida con MISP
+                
+                with open("/var/ossec/logs/integration_debug.log", "a") as debug_log:
+                    debug_log.write(f"\n[DEBUG] Alerta enriquecida con MISP: {json.dumps(alert, indent=2)}\n")
+                
                 # Aquí se envía la alerta enriquecida al sistema Wazuh (Dashboard)
-                send_event_to_wazuh(alert)
+                send_event_to_wazuh(alert)                    
             else:
                 alert["misp"] = {"error": "No se encontraron atributos relevantes en MISP"}
                 alert["integration"] = "misp_error"  # Indicamos que hubo un error al enriquecer con MISP
@@ -114,21 +155,22 @@ def process_alert(alert):
     else:
         print("No se pudo obtener respuesta de MISP", file=sys.stderr)
 
-
 # Función principal
 def main():
     # Leer alerta desde stdin (proporcionada por Wazuh)
-    alert = sys.stdin.read()
+    for line in sys.stdin:
+        print("Alerta recibida desde stdin:")
+        print(line)  # Imprime la alerta para depuración
 
-    # Parsear alerta como JSON
-    try:
-        alert_json = json.loads(alert)
-    except json.JSONDecodeError:
-        print("No se pudo decodificar la alerta como JSON.", file=sys.stderr)
-        sys.exit(1)
+        # Parsear alerta como JSON
+        try:
+            alert_json = json.loads(line)
+        except json.JSONDecodeError:
+            print("No se pudo decodificar la alerta como JSON.")
+            continue  # Continuar con la siguiente línea si esta no es un JSON válido
 
-    # Procesar la alerta y enriquecerla
-    process_alert(alert_json)
+        # Procesar la alerta y enriquecerla
+        process_alert(alert_json)
 
 if __name__ == "__main__":
     main()

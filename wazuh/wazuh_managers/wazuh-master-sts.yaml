@@ -48,7 +48,10 @@ spec:
             name: sentinelone-decoders-configmap  
         - name: misp-rules
           configMap:
-            name: misp-rules-configmap             ########ENDS MY CONFIG######               
+            name: misp-rules-configmap
+        - name: local-rules
+          configMap:
+            name: local-rules-configmap                         ########ENDS MY CONFIG######               
         - name: config
           configMap:
             name: wazuh-conf
@@ -116,7 +119,11 @@ spec:
             - name: misp-rules
               mountPath: /var/ossec/etc/rules/misp-rules.xml
               subPath: misp_rules.xml 
-              readOnly: true              #######ENDS MY CONFIG###############                       
+              readOnly: true
+            - name: local-rules
+              mountPath: /var/ossec/etc/rules/local_rules.xml
+              subPath: local_rules.xml               
+              readOnly: true                            #######ENDS MY CONFIG###############                       
             - name: config
               mountPath: /wazuh-config-mount/etc/ossec.conf
               subPath: master.conf

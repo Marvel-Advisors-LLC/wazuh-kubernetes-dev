@@ -28,3 +28,39 @@ seccomp:
   - action: allow
     names:
     - rseq
+
+# Procesadores para modificar los eventos antes de enviarlos a Elasticsearch
+# processors:
+#   - convert:
+#       fields:
+#         - {from: "data.data", to: "data.data", type: "string"}
+#       ignore_missing: true
+#       fail_on_error: false
+
+#   - rename:
+#       fields:
+#         - from: "data.data"
+#           to: "data.new_field"
+#       ignore_missing: true
+
+#   - script:
+#       lang: painless
+#       source: >
+#         if (ctx.data?.new_field != null && ctx.data.new_field instanceof String) {
+#           ctx.data.new_field = ["value": ctx.data.new_field];
+#         }
+
+
+#   - convert:
+#       fields:
+#         - field: "data.new_field"
+#           type: auto
+#       ignore_missing: true
+#       ignore_failure: true
+
+#   - set:
+#       field: "data.aws.region"
+#       value: "{{data.aws.awsRegion}}"
+#       override: false
+#       ignore_failure: true
+#       ignore_empty_value: true
