@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wazuh-dashboard-ingress
+  namespace: wazuh
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/load-balancer-name: alb-shared
+    alb.ingress.kubernetes.io/group.name: soc-marvelad-ingress-group
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:590183765660:certificate/98339085-4581-41ab-a059-7fc9c4d8db2c
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/success-codes: "200,301,302,303"
+    external-dns.alpha.kubernetes.io/hostname: soc.siem-marvelad.com
+spec:
+  rules:
+    - host: soc.siem-marvelad.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard  #Name of the service created for the dashboard
+                port:
+                  number: 80
