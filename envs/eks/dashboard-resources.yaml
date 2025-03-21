@@ -17,8 +17,8 @@ spec:
         - name: wazuh-dashboard
           resources:
             requests:
-              cpu: 200m
-              memory: 512Mi
+              cpu: 600m
+              memory: 4Gi
             limits:
-              cpu: 400m
-              memory: 2Gi
+              cpu: 1
+              memory: 8Gi

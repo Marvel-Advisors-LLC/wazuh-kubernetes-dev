@@ -64,8 +64,8 @@ resources:
   - wazuh_managers/wazuh_conf/local_rules_configmap.yaml
   - wazuh_managers/wazuh_conf/misp-rules-configmap.yaml
   - wazuh_managers/wazuh_conf/wazuh-template-json-configmap.yaml
-  - wazuh_managers/wazuh-integrations/custom-w2thive-bash-configmap.yaml
-  - wazuh_managers/wazuh-integrations/custom-w2thive-script-configmap.yaml
+  # - wazuh_managers/wazuh-integrations/custom-w2thive-bash-configmap.yaml
+  # - wazuh_managers/wazuh-integrations/custom-w2thive-script-configmap.yaml
   - wazuh_managers/wazuh-integrations/custom-misp-configmap.yaml   ########ENDS MY  CONFIG ################   
 
   - indexer_stack/wazuh-indexer/indexer-svc.yaml

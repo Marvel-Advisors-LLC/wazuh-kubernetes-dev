@@ -13,7 +13,7 @@ metadata:
   name: wazuh-indexer
   namespace: wazuh
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: wazuh-indexer
@@ -59,11 +59,14 @@ spec:
             privileged: true
       containers:
         - name: wazuh-indexer
-          image: 'wazuh/wazuh-indexer:4.9.1'
+          image: 'wazuh/wazuh-indexer:4.11.1'
           resources:
+            requests:
+              cpu: 666m
+              memory: 2Gi
             limits:
-              cpu: 500m
-              memory: 1564Mi
+              cpu: 1 # originally on 500m
+              memory: 2Gi # originally 1564Mi
           env:
             - name: OPENSEARCH_JAVA_OPTS
               value: '-Xms1g -Xmx1g -Dlog4j2.formatMsgNoLookups=true'

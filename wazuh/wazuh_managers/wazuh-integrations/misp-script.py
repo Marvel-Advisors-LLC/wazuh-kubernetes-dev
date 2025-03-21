@@ -16,7 +16,7 @@ http.client.HTTPConnection.debuglevel = 1
 
 # Dirección de la API de MISP y clave de API MISP
 MISP_API_URL = "https://misp.siem-marvelad.com/attributes/restSearch"
-MISP_API_KEY = "Nz2QrrhpEsb1xThJRMK0Bf4BvL7aqqtgxUafGwGv"
+MISP_API_KEY = "nlar3h6khGkxZHvq19n6JFMoXQMrUWYcTZ3ebGzG"
 
 # Dirección del socket de Wazuh para enviar eventos
 SOCKET_ADDR = "/var/ossec/queue/sockets/queue"

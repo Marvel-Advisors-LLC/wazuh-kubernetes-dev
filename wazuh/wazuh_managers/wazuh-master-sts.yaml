@@ -28,14 +28,14 @@ spec:
       name: wazuh-manager-master
     spec:
       volumes:
-        - name: custom-scripts #########START MY CONFIG##############
-          configMap:
-            name: custom-w2thive-script
-            defaultMode: 0750
-        - name: custom-scripts-bash
-          configMap:
-            name: custom-w2thive-bash
-            defaultMode: 0750      
+        # - name: custom-scripts #########START MY CONFIG##############
+        #   configMap:
+        #     name: custom-w2thive-script
+        #     defaultMode: 0750
+        # - name: custom-scripts-bash
+        #   configMap:
+        #     name: custom-w2thive-bash
+        #     defaultMode: 0750       
         - name: custom-misp-script
           configMap:
             name: custom-misp
@@ -66,32 +66,45 @@ spec:
             secretName: wazuh-authd-pass
       securityContext:
         fsGroup: 101
-      initContainers:
-        - name: init-permissions
-          image: 'wazuh/wazuh-manager:4.9.1'
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: 100m
-              memory: 256Mi
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0    
-          command: 
-            - 'sh'
-            - '-c'
-            - |              
-              echo "Instalando thehive4py versión en el entorno de Wazuh..."
-              /var/ossec/framework/python/bin/pip3 install thehive4py || echo "Error instalando thehive4py"                                           
+      # initContainers:
+      #   - name: init-permissions
+      #     image: 'wazuh/wazuh-manager:4.11.1'
+      #     resources:
+      #       requests:
+      #         cpu: 50m
+      #         memory: 128Mi
+      #       limits:
+      #         cpu: 100m
+      #         memory: 256Mi
+      #     securityContext:
+      #       runAsUser: 0
+      #       runAsGroup: 0    
+      #     volumeMounts:
+      #       - name: integrations-storage
+      #         mountPath: /temp-storage
+      #       - name: custom-misp-script
+      #         mountPath: /config-map
+      #         readOnly: true                                  
+      #     command: 
+      #       - 'sh'
+      #       - '-c'
+      #       - |
+      #         echo "Copiando scripts desde ConfigMap a /var/ossec/integrations..."
+      #         cp /config-map/custom-misp.py /var/ossec/integrations/custom-misp.py
+              
+      #         echo "Cambiando permisos..."
+      #         chmod 750 /var/ossec/integrations/custom-misp.py
+      #         chown root:wazuh /var/ossec/integrations/custom-misp.py 
+
+      #         echo "Verificando archivos en /var/ossec/integrations:"
+      #         ls -l /var/ossec/integrations/                                             
       containers:
         - name: wazuh-manager
-          image: 'wazuh/wazuh-manager:4.9.1'
+          image: 'wazuh/wazuh-manager:4.11.1'
           resources:
             limits:
-              cpu: 400m
-              memory: 512Mi
+              cpu: 500m
+              memory: 2Gi
           securityContext:
             capabilities:
               add: ["SYS_CHROOT"]
@@ -99,18 +112,18 @@ spec:
             - name: config   #########START MY CONFIG##############
               mountPath: /etc/filebeat/filebeat.yml 
               subPath: filebeat.yml  
-            - name: custom-scripts-bash
-              mountPath: /wazuh-config-mount/integrations/custom-w2thive
-              subPath: custom-w2thive
-              readOnly: true
-            - name: custom-scripts
-              mountPath: /wazuh-config-mount/integrations/custom-w2thive.py
-              subPath: custom-w2thive.py
-              readOnly: true  
+            # - name: custom-scripts-bash
+            #   mountPath: /wazuh-config-mount/integrations/custom-w2thive
+            #   subPath: custom-w2thive
+            #   readOnly: true
+            # - name: custom-scripts
+            #   mountPath: /wazuh-config-mount/integrations/custom-w2thive.py
+            #   subPath: custom-w2thive.py
+            #   readOnly: true  
             - name: custom-misp-script
               mountPath: /wazuh-config-mount/integrations/custom-misp.py
               subPath: custom-misp.py
-              readOnly: true                                                       
+              readOnly: true                                                                  
             - name: sentinelone-rules
               mountPath: /var/ossec/etc/rules/sentinelone_rules.xml
               subPath: sentinelone_rules.xml

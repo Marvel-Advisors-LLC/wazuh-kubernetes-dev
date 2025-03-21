@@ -18,10 +18,10 @@ spec:
           resources:
             requests:
               cpu: 1
-              memory: 1Gi
+              memory: 2Gi
             limits:
               cpu: 2
-              memory: 2Gi
+              memory: 4Gi
   volumeClaimTemplates:
     - metadata:
         name: wazuh-manager-worker

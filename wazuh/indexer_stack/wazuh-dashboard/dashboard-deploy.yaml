@@ -32,11 +32,11 @@ spec:
             secretName: dashboard-certs
       containers:
         - name: wazuh-dashboard
-          image: 'wazuh/wazuh-dashboard:4.9.1'
+          image: 'wazuh/wazuh-dashboard:4.11.1'
           resources:
             limits:
-              cpu: 500m
-              memory: 1Gi
+              cpu: 1
+              memory: 8Gi
           volumeMounts:
             - name: config
               mountPath: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
