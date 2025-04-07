@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: entrypointsh
+  namespace: wazuh
+data:
+  entrypoint.sh: |
+    #!/bin/bash
+    cp -r /wazuh-config-mount/integrations/custom-wazuh_iris.py /var/ossec/integrations/custom-wazuh_iris.py
+    cp -r /wazuh-config-mount/integrations/custom-misp.py /var/ossec/integrations/custom-wazuh_iris.py
+    chown root:wazuh /var/ossec/integrations/custom-wazuh_iris.py
+    chown root:wazuh /var/ossec/integrations/custom-misp.py
+    chmod 750 /var/ossec/integrations/custom-misp.py
+    chmod 750 /var/ossec/integrations/custom-wazuh_iris.py
+    

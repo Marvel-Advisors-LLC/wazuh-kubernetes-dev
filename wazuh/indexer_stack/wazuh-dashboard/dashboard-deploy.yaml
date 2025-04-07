@@ -36,7 +36,7 @@ spec:
           resources:
             limits:
               cpu: 1
-              memory: 8Gi
+              memory: 4Gi
           volumeMounts:
             - name: config
               mountPath: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml

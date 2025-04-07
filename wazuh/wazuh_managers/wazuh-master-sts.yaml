@@ -27,19 +27,17 @@ spec:
         node-type: master
       name: wazuh-manager-master
     spec:
-      volumes:
-        # - name: custom-scripts #########START MY CONFIG##############
-        #   configMap:
-        #     name: custom-w2thive-script
-        #     defaultMode: 0750
-        # - name: custom-scripts-bash
-        #   configMap:
-        #     name: custom-w2thive-bash
-        #     defaultMode: 0750       
-        - name: custom-misp-script
+      volumes:  
+        - name: custom-misp-script  #########START MY CONFIG##############
           configMap:
             name: custom-misp
-            defaultMode: 0750                                              
+        - name: custom-iris-script    
+          configMap:
+            name: custom-iris    
+        - name: entrypoint-sh-configmap
+          configMap:
+            name: entrypointsh   
+            defaultMode: 0755  # Para que sea ejecutable                                                   
         - name: sentinelone-rules 
           configMap:
             name: sentinelone-rules-configmap 
@@ -65,39 +63,7 @@ spec:
           secret:
             secretName: wazuh-authd-pass
       securityContext:
-        fsGroup: 101
-      # initContainers:
-      #   - name: init-permissions
-      #     image: 'wazuh/wazuh-manager:4.11.1'
-      #     resources:
-      #       requests:
-      #         cpu: 50m
-      #         memory: 128Mi
-      #       limits:
-      #         cpu: 100m
-      #         memory: 256Mi
-      #     securityContext:
-      #       runAsUser: 0
-      #       runAsGroup: 0    
-      #     volumeMounts:
-      #       - name: integrations-storage
-      #         mountPath: /temp-storage
-      #       - name: custom-misp-script
-      #         mountPath: /config-map
-      #         readOnly: true                                  
-      #     command: 
-      #       - 'sh'
-      #       - '-c'
-      #       - |
-      #         echo "Copiando scripts desde ConfigMap a /var/ossec/integrations..."
-      #         cp /config-map/custom-misp.py /var/ossec/integrations/custom-misp.py
-              
-      #         echo "Cambiando permisos..."
-      #         chmod 750 /var/ossec/integrations/custom-misp.py
-      #         chown root:wazuh /var/ossec/integrations/custom-misp.py 
-
-      #         echo "Verificando archivos en /var/ossec/integrations:"
-      #         ls -l /var/ossec/integrations/                                             
+        fsGroup: 101                                          
       containers:
         - name: wazuh-manager
           image: 'wazuh/wazuh-manager:4.11.1'
@@ -111,15 +77,13 @@ spec:
           volumeMounts:
             - name: config   #########START MY CONFIG##############
               mountPath: /etc/filebeat/filebeat.yml 
-              subPath: filebeat.yml  
-            # - name: custom-scripts-bash
-            #   mountPath: /wazuh-config-mount/integrations/custom-w2thive
-            #   subPath: custom-w2thive
-            #   readOnly: true
-            # - name: custom-scripts
-            #   mountPath: /wazuh-config-mount/integrations/custom-w2thive.py
-            #   subPath: custom-w2thive.py
-            #   readOnly: true  
+              subPath: filebeat.yml
+            - name: custom-iris-script
+              mountPath: /wazuh-config-mount/integrations/custom-wazuh_iris.py
+              subPath: custom-wazuh_iris.py
+            - name: entrypoint-sh-configmap
+              mountPath: /usr/local/bin/entrypoint.sh
+              subPath: entrypoint.sh
             - name: custom-misp-script
               mountPath: /wazuh-config-mount/integrations/custom-misp.py
               subPath: custom-misp.py
@@ -197,6 +161,10 @@ spec:
             - name: wazuh-manager-master
               mountPath: /var/lib/filebeat
               subPath: filebeat/var/lib/filebeat
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/bash", "-c", "/usr/local/bin/entrypoint.sh"]              
           ports:
             - containerPort: 1515
               name: registration
