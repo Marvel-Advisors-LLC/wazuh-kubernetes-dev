@@ -8,6 +8,9 @@ metadata:
     alb.ingress.kubernetes.io/load-balancer-name: alb-shared
     alb.ingress.kubernetes.io/group.name: soc-marvelad-ingress-group
     alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/security-groups: sg-084774d2ddf828662
+    alb.ingress.kubernetes.io/manage-security-group-rules: "false"
+    alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true" 
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:590183765660:certificate/98339085-4581-41ab-a059-7fc9c4d8db2c
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
