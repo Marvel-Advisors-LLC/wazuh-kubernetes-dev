@@ -7,6 +7,7 @@ metadata:
     app: wazuh-syslog
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    #service.beta.kubernetes.io/aws-load-balancer-security-groups: sg-0d0fb8e4cb14696cc
     service.beta.kubernetes.io/aws-load-balancer-eip-allocations: eipalloc-09da44be7717957ee, eipalloc-08f9bb7c3445c690e
     service.beta.kubernetes.io/aws-load-balancer-subnets: subnet-05fbf4a6250fa2324, subnet-0c3fca6bec1072d2a
     service.beta.kubernetes.io/aws-load-balancer-name: external-syslog-lb  

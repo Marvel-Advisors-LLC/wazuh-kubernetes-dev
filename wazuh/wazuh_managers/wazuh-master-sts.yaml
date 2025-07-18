@@ -78,16 +78,16 @@ spec:
             - name: config   #########START MY CONFIG##############
               mountPath: /etc/filebeat/filebeat.yml 
               subPath: filebeat.yml
-            - name: custom-iris-script
-              mountPath: /wazuh-config-mount/integrations/custom-wazuh_iris.py
-              subPath: custom-wazuh_iris.py
-            - name: entrypoint-sh-configmap
-              mountPath: /usr/local/bin/entrypoint.sh
-              subPath: entrypoint.sh
-            - name: custom-misp-script
-              mountPath: /wazuh-config-mount/integrations/custom-misp.py
-              subPath: custom-misp.py
-              readOnly: true                                                                  
+            # - name: custom-iris-script
+            #   mountPath: /wazuh-config-mount/integrations/custom-wazuh_iris.py
+            #   subPath: custom-wazuh_iris.py
+            # - name: entrypoint-sh-configmap
+            #   mountPath: /usr/local/bin/entrypoint.sh
+            #   subPath: entrypoint.sh
+            # - name: custom-misp-script
+            #   mountPath: /wazuh-config-mount/integrations/custom-misp.py
+            #   subPath: custom-misp.py
+            #   readOnly: true                                                                  
             - name: sentinelone-rules
               mountPath: /var/ossec/etc/rules/sentinelone_rules.xml
               subPath: sentinelone_rules.xml
@@ -161,10 +161,10 @@ spec:
             - name: wazuh-manager-master
               mountPath: /var/lib/filebeat
               subPath: filebeat/var/lib/filebeat
-          lifecycle:
-            postStart:
-              exec:
-                command: ["/bin/bash", "-c", "/usr/local/bin/entrypoint.sh"]              
+          # lifecycle:
+          #   postStart:
+          #     exec:
+          #       command: ["/bin/bash", "-c", "/usr/local/bin/entrypoint.sh"]              
           ports:
             - containerPort: 1515
               name: registration
