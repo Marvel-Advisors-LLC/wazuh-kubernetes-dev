@@ -32,6 +32,9 @@ spec:
         - name: indexer-conf
           configMap:
             name: indexer-conf
+        - name: snapshots-volume  
+          persistentVolumeClaim:
+            claimName: snapshots-pvc  # ← Montamos el PVC creado manualmente               
       initContainers:
         - name: volume-mount-hack
           image: busybox
@@ -94,6 +97,8 @@ spec:
           volumeMounts:
             - name: wazuh-indexer
               mountPath: /var/lib/wazuh-indexer
+            - name: snapshots-volume                # <--- New mount for snapshots
+              mountPath: /mnt/snapshots
             - name: indexer-certs
               mountPath: /usr/share/wazuh-indexer/certs/node-key.pem
               subPath: node-key.pem
@@ -122,6 +127,10 @@ spec:
               mountPath: /usr/share/wazuh-indexer/opensearch-security/internal_users.yml
               subPath: internal_users.yml
               readOnly: true
+          # lifecycle:
+          #   postStart:
+          #     exec:
+          #       command: ["/bin/sh", "-c", "while [ ! -d /mnt/snapshots ]; do sleep 1; done; chown -R 1000:1000 /mnt/snapshots"]
           ports:
             - containerPort: 9200
               name: indexer-rest

@@ -78,7 +78,7 @@ spec:
             capabilities:
               add: ["SYS_CHROOT"]
           volumeMounts:
-            - name: config   #########START MY CONFIG##############
+            - name: config   #########START MY CONFIG###############
               mountPath: /etc/filebeat/filebeat.yml 
               subPath: filebeat.yml   
             # - name: custom-iris-script
@@ -184,6 +184,21 @@ spec:
                 secretKeyRef:
                   name: indexer-cred
                   key: password
+            - name: M365_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: m365-cred-secret
+                  key: TENANT_ID
+            - name: M365_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: m365-cred-secret
+                  key: CLIENT_ID
+            - name: M365_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: m365-cred-secret
+                  key: CLIENT_SECRET            
             - name: FILEBEAT_SSL_VERIFICATION_MODE
               value: 'full'
             - name: SSL_CERTIFICATE_AUTHORITIES

@@ -52,6 +52,7 @@ resources:
   - secrets/wazuh-cluster-key-secret.yaml
   - secrets/dashboard-cred-secret.yaml
   - secrets/indexer-cred-secret.yaml
+  - secrets/m365-cred-secret.yaml
 
   - wazuh_managers/wazuh-cluster-svc.yaml
   - wazuh_managers/wazuh-master-svc.yaml
@@ -71,6 +72,7 @@ resources:
   - indexer_stack/wazuh-indexer/indexer-svc.yaml
   - indexer_stack/wazuh-indexer/cluster/indexer-api-svc.yaml
   - indexer_stack/wazuh-indexer/cluster/indexer-sts.yaml
+  - indexer_stack/wazuh-indexer/cluster/snapshots-storage.yaml
 
   - indexer_stack/wazuh-dashboard/dashboard-svc.yaml
   - indexer_stack/wazuh-dashboard/dashboard-deploy.yaml
