@@ -9,7 +9,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Adds wazuh namespace to all resources.
-namespace: wazuh
+namespace: wazuh-dev
 
 secretGenerator:
   - name: indexer-certs

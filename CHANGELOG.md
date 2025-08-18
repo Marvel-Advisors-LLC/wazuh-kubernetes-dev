@@ -2,11 +2,125 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.0.0]
+## [4.12.0]
 
 ### Added
 
-- Update to Wazuh version [5.0.0](https://github.com/wazuh/wazuh/blob/v5.0.0/CHANGELOG.md#v500)
+- None
+
+### Changed
+
+- Change VERSION file format ([#985](https://github.com/wazuh/wazuh-kubernetes/pull/985)) \- (VERSION file)
+
+### Fixed
+
+- None
+
+### Deleted
+
+- None
+
+## [4.11.2]
+
+### Added
+
+- None
+
+### Changed
+
+- None
+
+### Fixed
+
+- None
+
+### Deleted
+
+- None
+
+## [4.11.1]
+
+### Added
+
+- None
+
+### Changed
+
+- None
+
+### Fixed
+
+- None
+
+### Deleted
+
+- None
+
+## [4.11.0]
+
+### Added
+
+- None
+
+### Changed
+
+- None
+
+### Fixed
+
+- None
+
+### Deleted
+
+- None
+
+## [4.10.1]
+
+### Added
+
+- None
+
+### Changed
+
+- None
+
+### Fixed
+
+- None
+
+### Deleted
+
+- None
+
+## [4.10.0]
+
+### Added
+
+- None
+
+### Changed
+
+- None
+
+### Fixed
+
+- Add labelSelector ([#872](https://github.com/wazuh/wazuh-kubernetes/pull/872)) \- (Wazuh worker STS)
+
+### Deleted
+
+- None
+
+## [4.9.2]
+
+### Added
+
+- Update to Wazuh version [4.9.2](https://github.com/wazuh/wazuh/blob/v4.9.2/CHANGELOG.md#v492)
+
+## [4.9.1]
+
+### Added
+
+- Update to Wazuh version [4.9.1](https://github.com/wazuh/wazuh/blob/v4.9.1/CHANGELOG.md#v491)
 
 ## [4.9.0]
 

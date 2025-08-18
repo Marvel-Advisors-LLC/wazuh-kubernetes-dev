@@ -9,7 +9,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: wazuh-manager-worker
-  namespace: wazuh
+  namespace: wazuh-dev
 spec:
   template:
     spec:
@@ -25,11 +25,11 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: wazuh-manager-worker
-        namespace: wazuh
+        namespace: wazuh-dev
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: wazuh-storage
+        storageClassName: wazuh-storage-dev
         resources:
           requests:
             storage: 50Gi

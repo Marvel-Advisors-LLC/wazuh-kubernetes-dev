@@ -5,17 +5,17 @@
 # License (version 2) as published by the FSF - Free Software
 # Foundation.
 
-# Indexer service: API
+# Indexer service: Communications
 
 apiVersion: v1
 kind: Service
 metadata:
   name: indexer
-  namespace: wazuh
+  namespace: wazuh-dev
   labels:
     app: wazuh-indexer
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: wazuh-indexer
   ports:
