@@ -37,6 +37,9 @@ spec:
         - name: wazuh-authd-pass
           secret:
             secretName: wazuh-authd-pass
+        - name: install-syslog-ng-sh-configmap
+          configMap:
+            name: syslog-ng-install-script             
       securityContext:
         fsGroup: 101
       containers:
@@ -53,7 +56,7 @@ spec:
             - name: config
               mountPath: /wazuh-config-mount/etc/ossec.conf
               subPath: master.conf
-              readOnly: true
+              readOnly: true           
             - name: filebeat-certs
               mountPath: /etc/ssl/root-ca.pem
               readOnly: true
@@ -102,7 +105,14 @@ spec:
               subPath: filebeat/etc/filebeat
             - name: wazuh-manager-master
               mountPath: /var/lib/filebeat
-              subPath: filebeat/var/lib/filebeat
+              subPath: filebeat/var/lib/filebeat 
+            - name: install-syslog-ng-sh-configmap  #############
+              mountPath: /usr/local/bin/syslog-install.sh
+              subPath: syslog-install.sh               
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/bash", "-c", "/usr/local/bin/syslog-install.sh"]
           ports:
             - containerPort: 1515
               name: registration

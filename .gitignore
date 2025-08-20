@@ -1,0 +1,16 @@
+wazuh/certs/dashboard_http/*.pem
+wazuh/certs/dashboard_http/*.key
+wazuh/certs/indexer_cluster/*.pem
+wazuh/certs/indexer_cluster/*.key
+wazuh/certs/indexer_cluster/*.csr
+wazuh/certs/indexer_cluster/*.srl
+wazuh/certs/dashboard_http/*.pem
+wazuh/certs/dashboard_http/*.key
+wazuh/certs/indexer_cluster/*.pem
+wazuh/certs/indexer_cluster/*.key
+wazuh/certs/indexer_cluster/*.csr
+wazuh/certs/indexer_cluster/*.srl
+/envs/eks/pv-nfs.yaml
+/envs/eks/pvc-nfs.yaml
+/envs/eks/wazuh-indexer-legacy.yaml
+/wazuh/secrets/m365-cred-secret.yaml
