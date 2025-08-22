@@ -22,11 +22,12 @@ data:
     source s_sys {
         system();
         internal();
-        tcp(port(6514));   # <-- listener TCP para pruebas
+        tcp(port(6514));
+        udp(port(6514));   
     };
 
     destination d_cons { file("/dev/console"); };
-    destination d_mesg { file("/var/ossec/logs/syslog-ng.log"); };
+    destination d_mesg { file("/var/ossec/logs/archives/archives.log"); };
     destination d_auth { file("/var/log/secure"); };
     destination d_mail { file("/var/log/maillog" flush_lines(10)); };
     destination d_spol { file("/var/log/spooler"); };
@@ -34,6 +35,7 @@ data:
     destination d_cron { file("/var/log/cron"); };
     destination d_kern { file("/var/log/kern"); };
     destination d_mlal { usertty("*"); };
+    destination d_remote { file("/var/log/remote/${HOST}.log" create-dirs(yes)); }; # Nueva carpeta para logs remotos por host
 
     filter f_kernel     { facility(kern); };
     filter f_default    { level(info..emerg) and
@@ -48,15 +50,18 @@ data:
                             and level(crit..emerg)); };
     filter f_boot   { facility(local7); };
     filter f_cron   { facility(cron); };
-
+    
     log { source(s_sys); filter(f_kernel); destination(d_kern); };
-    log { source(s_sys); filter(f_default); destination(d_mesg); };
     log { source(s_sys); filter(f_auth); destination(d_auth); };
     log { source(s_sys); filter(f_mail); destination(d_mail); };
     log { source(s_sys); filter(f_emergency); destination(d_mlal); };
     log { source(s_sys); filter(f_news); destination(d_spol); };
     log { source(s_sys); filter(f_boot); destination(d_boot); };
     log { source(s_sys); filter(f_cron); destination(d_cron); };
-    log { source(s_sys); destination(d_mesg); }; 
 
+    # Todos los logs restantes van a archives/archives.log
+    log { source(s_sys); destination(d_mesg); };
+
+    # Todos los logs externos se guardan por host
+    log { source(s_sys); destination(d_remote); };
     @include "/etc/syslog-ng/conf.d/*.conf"
