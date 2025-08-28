@@ -25,6 +25,7 @@ spec:
       labels:
         app: wazuh-manager
         node-type: worker
+        syslog-ng: "true"
       name: wazuh-manager-worker
     spec:
       affinity:
@@ -46,7 +47,21 @@ spec:
             secretName: indexer-certs
         - name: syslog-ng-config-volume
           configMap:
-            name: syslog-ng-config                
+            name: syslog-ng-config      
+        - name: syslog-ng-tlskey-volume
+          configMap:
+            name: syslog-ng-tlskey
+        - name: syslog-ng-tlscrt-volume
+          configMap:
+            name: syslog-ng-tlscrt
+        - name: syslog-ng-ca-volume
+          configMap:
+            name: syslog-ng-ca            
+        - name: syslog-ng-tls-writable
+          emptyDir: {}            
+        - name: syslog-ng-entrypoint-volume
+          configMap:
+            name: syslog-ng-entrypoint          
       securityContext:
         fsGroup: 101
       containers:
@@ -124,6 +139,8 @@ spec:
               name: agents-events
             - containerPort: 1516
               name: cluster
+            - containerPort: 514
+              name: syslog-events                
           env:
             - name: INDEXER_URL
               value: 'https://indexer:9200'
@@ -152,19 +169,33 @@ spec:
                   key: key
         - name: syslog-ng
           image: balabit/syslog-ng:4.8.0  
-          command: ["/usr/sbin/syslog-ng"]
-          args: ["-F", "--no-caps", "-p", "6514"]
           securityContext:
             runAsUser: 0
             runAsGroup: 0
-            allowPrivilegeEscalation: true
+            allowPrivilegeEscalation: true         
           volumeMounts:
             - name: syslog-ng-config-volume
               mountPath: /etc/syslog-ng/syslog-ng.conf
               subPath: syslog-ng.conf
+            - name: syslog-ng-tls-writable  #EmptyDir
+              mountPath: /etc/syslog-ng/tls              
+            - name: syslog-ng-tlskey-volume
+              mountPath: /tmp/tls/tls.key
+              subPath: tls.key
+            - name: syslog-ng-tlscrt-volume
+              mountPath: /tmp/tls/tls.crt
+              subPath: tls.crt
+            - name: syslog-ng-ca-volume
+              mountPath: /tmp/tls/ca.crt
+              subPath: ca.crt
+            - name: syslog-ng-entrypoint-volume
+              mountPath: /usr/local/bin/entrypoint.sh
+              subPath: entrypoint.sh
+              readOnly: true      
+          command: ["/bin/sh", "/usr/local/bin/entrypoint.sh"]                                                          
           ports:
             - containerPort: 6514
-              name: syslog-tls                
+              name: syslog-tls                   
   volumeClaimTemplates:
     - metadata:
         name: wazuh-manager-worker

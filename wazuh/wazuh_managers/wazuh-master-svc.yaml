@@ -30,7 +30,8 @@ spec:
     - name: api
       port: 55000
       targetPort: 55000
-    - name: syslog-ng
-      port: 6514          # nuevo puerto
-      targetPort: 6514
+    - name: syslog-events 
+      port: 514
+      protocol: TCP
+      targetPort: 514      
 

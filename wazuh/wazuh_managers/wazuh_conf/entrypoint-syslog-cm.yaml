@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: syslog-ng-entrypoint
+data:
+  entrypoint.sh: |
+    #!/bin/sh
+    set -e
+
+    # Directories
+    TLS_SRC="/tmp/tls"
+    TLS_DST="/etc/syslog-ng/tls"
+
+    echo "[entrypoint] Copying TLS certificates..."
+    cp $TLS_SRC/* $TLS_DST/
+
+    echo "[entrypoint] Setting permissions..."
+    chmod 600 $TLS_DST/tls.key
+    chmod 644 $TLS_DST/*.crt
+
+    echo "[entrypoint] Final permissions:"
+    ls -l $TLS_DST
+
+    echo "[entrypoint] Starting syslog-ng..."
+    exec /usr/sbin/syslog-ng -F --no-caps -f /etc/syslog-ng/syslog-ng.conf

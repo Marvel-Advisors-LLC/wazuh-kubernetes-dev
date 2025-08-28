@@ -61,6 +61,11 @@ resources:
   - indexer_stack/wazuh-indexer/indexer-svc.yaml
   - indexer_stack/wazuh-indexer/cluster/indexer-api-svc.yaml
   - indexer_stack/wazuh-indexer/cluster/indexer-sts.yaml  #########
+  - wazuh_managers/wazuh_conf/syslog-ng-secrets/ca.yaml
+  - wazuh_managers/wazuh_conf/syslog-ng-secrets/tlskey.yaml
+  - wazuh_managers/wazuh_conf/syslog-ng-secrets/tlscrt.yaml
+  - wazuh_managers/wazuh_conf/entrypoint-syslog-cm.yaml
+  - wazuh_managers/syslog-svc.yaml
 
   - indexer_stack/wazuh-dashboard/dashboard-svc.yaml
   - indexer_stack/wazuh-dashboard/dashboard-deploy.yaml
