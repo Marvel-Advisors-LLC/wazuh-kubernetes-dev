@@ -32,9 +32,6 @@ data:
             )
         );
     };
-    source s_plain {
-    tcp(port(1515));
-    };
 
     # Destination: forward to local Wazuh
     destination d_wazuh { tcp("127.0.0.1" port(514)); };
@@ -45,5 +42,3 @@ data:
     # Pipeline: everything received via TLS goes to Wazuh and optionally to stdout
     log { source(s_tls); destination(d_wazuh); };
     log { source(s_tls); destination(d_stdout); };
-    log { source(s_plain); destination(d_wazuh); };
-    log { source(s_plain); destination(d_stdout); };
