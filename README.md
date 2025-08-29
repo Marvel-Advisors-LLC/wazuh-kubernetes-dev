@@ -1,17 +1,14 @@
-# Wazuh Kubernetes
+# Marvel Advisors Wazuh-dev Kubernetes
 
-[![Slack](https://img.shields.io/badge/slack-join-blue.svg)](https://wazuh.com/community/join-us-on-slack/)
-[![Email](https://img.shields.io/badge/email-join-blue.svg)](https://groups.google.com/forum/#!forum/wazuh)
-[![Documentation](https://img.shields.io/badge/docs-view-green.svg)](https://documentation.wazuh.com)
-[![Documentation](https://img.shields.io/badge/web-view-green.svg)](https://wazuh.com)
-
-Deploy a Wazuh cluster with a basic indexer and dashboard stack on Kubernetes.
+The purpose of this repository is for developing tests.
+At the moment the only diference from the original wazuh, is that  
+we are not using LoadBalancers only services with ClusterIP. We implemented syslog-ng for encrypt and decrypt syslog  
+alerts that we receive from Rise Broadband. This repo is suposed to be deployed using the test-env-infra for the creation  
+of the EKS cluster using terraform. After usage it must be destroyed. 
 
 ## Branches
 
-* `master` branch contains the latest code, be aware of possible bugs on this branch.
-* `stable` branch on correspond to the last Wazuh stable version.
-
+* `master-dev` branch contains the code for wazuh 4.12.0 functional.
 
 ## Documentation
 
@@ -29,6 +26,7 @@ To deploy a cluster on your local environment (like Minikube, Kind or Microk8s) 
 
     ├── CHANGELOG.md
     ├── cleanup.md
+    ├── images
     ├── envs
     │   ├── eks
     │   │   ├── dashboard-resources.yaml
@@ -81,20 +79,24 @@ To deploy a cluster on your local environment (like Minikube, Kind or Microk8s) 
         └── wazuh_managers
             ├── wazuh-cluster-svc.yaml
             ├── wazuh_conf
+            │   ├── syslog-ng-secrets
+            │   │   ├── ca.yaml
+            │   │   ├── tlscrt.yaml
+            │   │   ├── tlskey.yaml
             │   ├── master.conf
+            │   ├── entrypoint-syslog-cm.yaml
+            │   ├── syslog-ng-cm.yaml
             │   └── worker.conf
             ├── wazuh-master-sts.yaml
             ├── wazuh-master-svc.yaml
             ├── wazuh-workers-svc.yaml
             └── wazuh-worker-sts.yaml
 
-## Contribute
+## Syslog-ng architecture and network
 
-If you want to contribute to our project please don't hesitate to send a pull request. You can also join our users [mailing list](https://groups.google.com/d/forum/wazuh) or the [Wazuh Slack community channel](https://wazuh.com/community/join-us-on-slack/) to ask questions and participate in discussions.
-
-## Credits and Thank you
-
-Based on the previous work from JPLachance [coveo/wazuh-kubernetes](https://github.com/coveo/wazuh-kubernetes) (2018/11/22).
+We use syslog-ng for encrypt and decrypt syslog messages comming from Rise Broadband, currently we're receiving SentinelOne and Palo Alto firewall alerts from syslog. Bellow you can see the diagram of  
+how it works:  
+![If the image doesn't appears, it may be deleted from /images/syslog-architecture-and-network.png](images/syslog-architecture-and-network.png)
 
 ## License and copyright
 
@@ -104,3 +106,9 @@ Copyright (C) 2016, Wazuh Inc.  (License GPLv2)
 ## References
 
 * [Wazuh website](http://wazuh.com)
+
+## Wazuh media: 
+[![Slack](https://img.shields.io/badge/slack-join-blue.svg)](https://wazuh.com/community/join-us-on-slack/)
+[![Email](https://img.shields.io/badge/email-join-blue.svg)](https://groups.google.com/forum/#!forum/wazuh)
+[![Documentation](https://img.shields.io/badge/docs-view-green.svg)](https://documentation.wazuh.com)
+[![Documentation](https://img.shields.io/badge/web-view-green.svg)](https://wazuh.com)

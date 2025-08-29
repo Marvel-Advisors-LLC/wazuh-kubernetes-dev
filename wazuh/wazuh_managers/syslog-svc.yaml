@@ -11,10 +11,6 @@ spec:
       port: 514
       protocol: TCP
       targetPort: 514
-    - name: syslog-udp
-      port: 514
-      protocol: UDP
-      targetPort: 514
     - name: syslog-tls
       port: 6514
       protocol: TCP
