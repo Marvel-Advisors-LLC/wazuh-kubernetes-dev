@@ -8,7 +8,14 @@ of the EKS cluster using terraform. After usage it must be destroyed.
 
 ## Branches
 
-* `master-dev` branch contains the code for wazuh 4.13.0 functional.
+* `master-dev` branch contains the code for wazuh 4.13.0 functional.  
+
+## Credentials for dashboard   
+
+```yaml
+user: admin
+password: SecretPassword
+```
 
 ## Documentation
 
