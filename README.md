@@ -12,6 +12,33 @@ of the EKS cluster using terraform. After usage it must be destroyed.
 
 ## Documentation
 
+## Prerequisites
+
+#### 1) S3 bucket configuration
+Ask a team member for the file `wazuh-s3-creds.yaml` if you need the S3 bucket credentials for restoring snapshots. Place it in `/wazuh/secrets`. If you don't need it, comment out this line in the `kustomization.yaml` file:
+
+```yaml
+resources:
+    - base/wazuh-ns.yaml
+    - base/storage-class.yaml
+
+    - secrets/wazuh-api-cred-secret.yaml
+    - secrets/wazuh-authd-pass-secret.yaml
+    - secrets/wazuh-cluster-key-secret.yaml
+    - secrets/dashboard-cred-secret.yaml
+    - secrets/indexer-cred-secret.yaml
+    - secrets/wazuh-s3-creds.yaml  #This line must be commented if not using s3-bucket
+```  
+
+#### 2) syslog-ng configuration
+If you plan to use the syslog-ng configuration (to receive syslogs from Rise Broadband on port 514), add the `syslog-ng-secrets` folder. Ask a team member for the folder and place it at `/wazuh/wazuh_managers/wazuh_conf`. If you are not using syslog-ng, comment out the following lines in `kustomization.yaml`:
+
+```yaml
+    - wazuh_managers/wazuh_conf/syslog-ng-secrets/ca.yaml
+    - wazuh_managers/wazuh_conf/syslog-ng-secrets/tlskey.yaml
+    - wazuh_managers/wazuh_conf/syslog-ng-secrets/tlscrt.yaml
+```
+
 ## Amazon EKS development
 
 To deploy a cluster on Amazon EKS cluster read the instructions on [instructions.md](instructions.md).
@@ -104,7 +131,8 @@ password: SecretPassword
         │   ├── indexer-cred-secret.yaml
         │   ├── wazuh-api-cred-secret.yaml
         │   ├── wazuh-authd-pass-secret.yaml
-        │   └── wazuh-cluster-key-secret.yaml
+        |   ├── wazuh-cluster-key-secret.yaml
+        │   └── wazuh-s3-creds.yaml
         └── wazuh_managers
             ├── wazuh-cluster-svc.yaml
             ├── wazuh_conf
