@@ -83,6 +83,18 @@ spec:
                   fieldPath: metadata.namespace
             - name: DISABLE_INSTALL_DEMO_CONFIG
               value: 'true'
+            - name: OPENSEARCH_PATH_CONF  # Config for S3 bucket snapshots
+              value: "/usr/share/wazuh-indexer"     
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-s3-creds
+                  key: access_key_id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-s3-creds
+                  key: secret_access_key                  
           securityContext:
             capabilities:
               add: ["SYS_CHROOT"]
@@ -117,6 +129,34 @@ spec:
               mountPath: /usr/share/wazuh-indexer/opensearch-security/internal_users.yml
               subPath: internal_users.yml
               readOnly: true
+          command:  #Install the S3 plugin if not installed yet, then start normally
+            - sh
+            - -c
+            - |
+              if ! /usr/share/wazuh-indexer/bin/opensearch-plugin list | grep -q repository-s3; then
+                echo "Installing repository-s3 plugin..."
+                echo "y" | /usr/share/wazuh-indexer/bin/opensearch-plugin install repository-s3
+              fi
+
+              # Crear el keystore si no existe
+              if [ ! -f /usr/share/wazuh-indexer/opensearch.keystore ] || ! /usr/share/wazuh-indexer/bin/opensearch-keystore list > /dev/null 2>&1; then
+                  echo "Creating OpenSearch keystore..."
+                  /usr/share/wazuh-indexer/bin/opensearch-keystore create
+              fi              
+
+              if ! /usr/share/wazuh-indexer/bin/opensearch-keystore list | grep -q s3.client.default.access_key; then
+                echo -n "$AWS_ACCESS_KEY_ID" | /usr/share/wazuh-indexer/bin/opensearch-keystore add s3.client.default.access_key --stdin
+              fi
+              if ! /usr/share/wazuh-indexer/bin/opensearch-keystore list | grep -q s3.client.default.secret_key; then
+                echo -n "$AWS_SECRET_ACCESS_KEY" | /usr/share/wazuh-indexer/bin/opensearch-keystore add s3.client.default.secret_key --stdin
+              fi   
+
+              chown wazuh-indexer:wazuh-indexer /usr/share/wazuh-indexer/opensearch.keystore
+              chmod 660 /usr/share/wazuh-indexer/opensearch.keystore
+
+
+              # Start original entrypoint
+              exec /usr/share/wazuh-indexer/bin/systemd-entrypoint                
           ports:
             - containerPort: 9200
               name: indexer-rest

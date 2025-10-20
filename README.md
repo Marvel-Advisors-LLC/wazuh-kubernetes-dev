@@ -10,13 +10,6 @@ of the EKS cluster using terraform. After usage it must be destroyed.
 
 * `master-dev` branch contains the code for wazuh 4.13.0 functional.  
 
-## Credentials for dashboard   
-
-```yaml
-user: admin
-password: SecretPassword
-```
-
 ## Documentation
 
 ## Amazon EKS development
@@ -28,6 +21,35 @@ The installation of the CSI driver is mandatory for new and old deployments if y
 ## Local development
 
 To deploy a cluster on your local environment (like Minikube, Kind or Microk8s) read the instructions on [local-environment.md](local-environment.md).
+
+
+## How to connect to dashboard
+
+You'll need one of the cluster nodes IP's to connect to the dashboard, you can get the IP like this: 
+```bash
+$ kubectl get nodes -o wide
+NAME                                         STATUS   ROLES    AGE   VERSION               INTERNAL-IP    EXTERNAL-IP     OS-IMAGE                       KERNEL-VERSION                   CONTAINER-RUNTIME
+ip-10-0-104-85.us-east-2.compute.internal    Ready    <none>   53m   v1.33.5-eks-113cf36   10.0.104.85    3.15.16.178     Amazon Linux 2023.9.20250929   6.12.46-66.121.amzn2023.x86_64   containerd://1.7.27
+ip-10-0-126-132.us-east-2.compute.internal   Ready    <none>   53m   v1.33.5-eks-113cf36   10.0.126.132   18.191.146.49   Amazon Linux 2023.9.20250929   6.12.46-66.121.amzn2023.x86_64   containerd://1.7.27
+ip-10-0-77-13.us-east-2.compute.internal     Ready    <none>   53m   v1.33.5-eks-113cf36   10.0.77.13     3.149.242.52    Amazon Linux 2023.9.20250929   6.12.46-66.121.amzn2023.x86_64   containerd://1.7.27
+ip-10-0-85-146.us-east-2.compute.internal    Ready    <none>   53m   v1.33.5-eks-113cf36   10.0.85.146    3.146.37.209    Amazon Linux 2023.9.20250929   6.12.46-66.121.amzn2023.x86_64   containerd://1.7.27
+```
+Copy one of the `EXTERNAL-IP` values and open it in your browser, for example:
+```js
+https://3.15.16.178:32080 
+```
+
+We use port 32080 for the dashboard. If the page doesn't load, you may need to open port 32080 in the security group (SG).
+
+Because we don't beed a trusted SSL certificate on this enviroment, your browser will show a warning — accept it to proceed.
+
+
+## Credentials for dashboard   
+
+```yaml
+user: admin
+password: SecretPassword
+```
 
 ## Directory structure
 
